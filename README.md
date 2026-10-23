@@ -11,3 +11,5 @@ Use the compact header version switcher to compare V1 and V2. Both designs are s
 Run from this directory with `python3 -m http.server 3000 --bind 0.0.0.0`.
 
 `concern.html`: housing concern design with accessible Overview, Resident perspectives, Evidence & resources, and Public action tabs. Resident stories and action milestones are explicitly illustrative.
+
+`map.html`: interactive state map with topic comparisons and synthetic example percentages. Geographic data: PublicaMundi/MappingAPI US states GeoJSON. No survey results are represented.
