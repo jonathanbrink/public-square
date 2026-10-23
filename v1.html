@@ -27,8 +27,7 @@
 <div class="list-labels"><span>PRIORITY / CONCERN</span><span>RESIDENT PRIORITIES</span></div><div id="concerns" aria-live="polite"></div><div class="list-footer"><span id="results"></span><span>Every priority starts with a conversation.</span></div></section>
 <aside class="invitation"><span class="invitation-icon" aria-hidden="true">✳</span><div><h3>A clearer picture, together.</h3><p>Local experiences and reliable evidence help bring each concern into focus.</p></div><span class="sample-badge">An early look at Public Square</span></aside>
 <footer><a class="brand small" href="./"><svg class="square-logo" aria-hidden="true" viewBox="7 7 26 26" fill="none"><circle cx="11" cy="11" r="2.65" fill="currentColor"/><circle cx="20" cy="11" r="2.65" fill="currentColor"/><circle cx="29" cy="11" r="2.65" fill="currentColor"/><circle cx="11" cy="20" r="2.65" fill="currentColor"/><circle cx="29" cy="20" r="2.65" fill="currentColor"/><circle cx="11" cy="29" r="2.65" fill="currentColor"/><circle cx="20" cy="29" r="2.65" fill="currentColor"/><circle cx="29" cy="29" r="2.65" fill="currentColor"/></svg>Public Square</a><p>Community priorities. Public accountability.</p><span>Built around what matters.</span></footer>
-</main><dialog id="detail"><button class="close" aria-label="Close concern details">×</button><div id="detail-content"></div></dialog><script>
-const concerns = [
+</main><dialog id="detail"><button class="close" aria-label="Close concern details">×</button><div id="detail-content"></div></dialog><script>const concerns = [
   {title:'Making housing affordable for the people who live here',description:'Rising rents and limited housing options are pushing longtime neighbors out.',topic:'Housing',state:'Oregon',city:'Portland',zip:'97211',priorities:1842,comments:128,sources:24},
   {title:'Safer streets for walking and biking',description:'Everyone deserves a safe way to get to school, work, and back home.',topic:'Transportation',state:'Oregon',city:'Portland',zip:'97214',priorities:1567,comments:96,sources:18},
   {title:'More support for neighbors experiencing homelessness',description:'Building a compassionate, lasting response with shelter, services, and housing.',topic:'Community care',state:'Washington',city:'Seattle',zip:'98101',priorities:1439,comments:112,sources:31},
@@ -70,7 +69,7 @@ function render(){
   const filtered = concerns.filter(c => (scope === 'national' || scope === 'state' && c.state === stateFilter.value || scope === 'city' && c.state === stateFilter.value && c.city === cityFilter.value || scope === 'zip' && validZip && c.zip === zip) && (topicFilter.value === 'all' || c.topic === topicFilter.value) && `${c.title} ${c.description} ${c.topic}`.toLowerCase().includes(query));
   list.innerHTML = filtered.length ? filtered.map(c => {
     const index = concerns.indexOf(c);
-    return `<article class="concern"><span class="rank">${String(index+1).padStart(2,'0')}</span><div class="concern-main"><button class="concern-title" data-index="${index}">${c.title}</button><p>${c.description}</p><div class="meta"><span class="tag">${c.topic}</span><span>${c.city}, ${c.state}</span><span>${c.comments} perspectives</span><span>·</span><span>${c.sources} sources</span></div></div><div class="priority-count">${format(c.priorities)}<small>residents prioritize this</small><button class="priority-button" data-priority="concern-${index+1}" aria-pressed="false">＋ Make this a priority</button></div><span class="row-arrow" aria-hidden="true">↗</span></article>`;
+    return `<article class="concern" id="concern-${index+1}"><span class="rank">${String(index+1).padStart(2,'0')}</span><div class="concern-main"><button class="concern-title" data-index="${index}">${c.title}</button><p>${c.description}</p><div class="meta"><span class="tag">${c.topic}</span><span>${c.city}, ${c.state}</span><span>${c.comments} perspectives</span><span>·</span><span>${c.sources} sources</span></div></div><div class="priority-count">${format(c.priorities)}<small>residents prioritize this</small><button class="priority-button" data-priority="concern-${index+1}" aria-pressed="false">＋ Make this a priority</button></div><span class="row-arrow" aria-hidden="true">↗</span></article>`;
   }).join('') : '<p class="empty">No concerns match these filters. Try another topic or location.</p>';
   document.querySelector('#count').textContent = filtered.length;
   document.querySelector('#results').textContent = `Showing ${filtered.length} of ${concerns.length} sample concerns · ${area} · Illustrative counts`;
@@ -80,22 +79,33 @@ locationFilter.addEventListener('change',updateLocation);
 stateFilter.addEventListener('change',updateLocation);
 [cityFilter,topicFilter].forEach(el => el.addEventListener('change',render));
 zipFilter.addEventListener('input',render);
-document.querySelector('#filters').addEventListener('submit',event => event.preventDefault());
+document.querySelector('#filters').addEventListener('submit',event => {
+  event.preventDefault();
+  if(locationFilter.value === 'zip' && !/^\d{5}$/.test(zipFilter.value.trim())){render();zipFilter.focus();return;}
+  if(document.body.classList.contains('results-page')){render();return;}
+  const params = new URLSearchParams({level:locationFilter.value,state:stateFilter.value,city:cityFilter.value,zip:zipFilter.value.trim(),topic:topicFilter.value,q:search.value});
+  window.location.href = `results.html?${params}`;
+});
 search.addEventListener('input',render);
 document.querySelector('#filters').addEventListener('reset',()=>setTimeout(updateLocation,0));
-const dialog = document.querySelector('#detail');
-list.addEventListener('click', event => {
-  const button = event.target.closest('[data-index]');
-  if(!button) return;
-  if(Number(button.dataset.index) === 0){window.location.href = 'concern.html';return;}
-  const c = concerns[Number(button.dataset.index)];
-  document.querySelector('#detail-content').innerHTML = `<div class="eyebrow">COMMUNITY PRIORITY ${Number(button.dataset.index)+1}</div><h2>${c.title}</h2><span class="tag">${c.topic} · ${c.city}, ${c.state} · ${c.zip}</span><p>${c.description}</p><p><strong>${format(c.priorities)} residents</strong> prioritize this concern, with ${c.comments} perspectives and ${c.sources} sources represented in this illustrative example.</p><p class="detail-note">This is a prototype with sample data. A future concern page will bring together resident experiences, linked evidence, and documented public actions. Accounts, contributions, and priority endorsements are not connected yet.</p>`;
-  dialog.showModal();
+list.addEventListener('click',event=>{
+ const button=event.target.closest('[data-index]');if(!button)return;
+ const index=Number(button.dataset.index);if(!concerns[index])return;
+ const filters=new URLSearchParams({level:locationFilter.value,state:stateFilter.value,city:cityFilter.value,zip:zipFilter.value,topic:topicFilter.value,q:search.value});
+ const page=window.location.pathname.split('/').pop()||'index.html';
+ const back=`${page}?${filters}#concern-${index+1}`;
+ window.location.href=`concern.html?${new URLSearchParams({id:`concern-${index+1}`,back})}`;
 });
-document.querySelector('.close').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('click', event=> { if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();} });
+const params = new URLSearchParams(window.location.search);
+if(['national','state','city','zip'].includes(params.get('level'))) locationFilter.value=params.get('level');
+if(['Oregon','Washington','California'].includes(params.get('state'))) stateFilter.value=params.get('state');
 updateLocation();
-
+if([...cityFilter.options].some(o=>o.value===params.get('city'))) cityFilter.value=params.get('city');
+if([...topicFilter.options].some(o=>o.value===params.get('topic'))) topicFilter.value=params.get('topic');
+zipFilter.value=params.get('zip')||'';
+search.value=params.get('q')||'';
+render();
+if(/^#concern-[1-8]$/.test(window.location.hash)) requestAnimationFrame(()=>document.getElementById(window.location.hash.slice(1))?.scrollIntoView({block:'center'}));
 </script>
 <div id="priority-announcement" class="priority-status" role="status" aria-live="polite" aria-atomic="true"></div><script>function createPriorityStore(storage,validIds){
  const key='public-square-priorities-v1',allowed=new Set(validIds);let saved=[],persistent=true;
@@ -111,7 +121,7 @@ function syncPriorityUI(){
  document.querySelectorAll('[data-priority-count]').forEach(el=>el.textContent=priorityStore.ids.length);
  document.querySelectorAll('[data-save-note]').forEach(el=>el.textContent=priorityStore.persistent?'Saved in this browser only. Your choices do not change community rankings.':'Browser storage is unavailable. Choices last only while this page stays open.');
  const target=document.querySelector('#my-priority-list');
- if(target){const choices=priorityCatalog.filter(c=>priorityStore.has(c.id));target.innerHTML=choices.length?choices.map(c=>`<article class="saved-concern"><div><span class="tag">${c.topic}</span><h2>${c.id==='concern-1'?`<a href="concern.html">${c.title} ↗</a>`:c.title}</h2><p>${c.city}, ${c.state} · ${c.description}</p></div><button class="remove-priority" data-remove-priority="${c.id}" aria-label="Remove ${c.title} from my priorities">Remove ×</button></article>`).join(''):'<div class="priority-empty"><span aria-hidden="true">＋</span><h2>What matters most to you?</h2><p>Choose up to 10 concerns to start your personal priority list.</p><a class="find-button" href="results.html">Explore concerns ↗</a></div>';}
+ if(target){const choices=priorityCatalog.filter(c=>priorityStore.has(c.id));target.innerHTML=choices.length?choices.map(c=>`<article class="saved-concern"><div><span class="tag">${c.topic}</span><h2><a href="concern.html?id=${c.id}&amp;back=priorities.html">${c.title} ↗</a></h2><p>${c.city}, ${c.state} · ${c.description}</p></div><button class="remove-priority" data-remove-priority="${c.id}" aria-label="Remove ${c.title} from my priorities">Remove ×</button></article>`).join(''):'<div class="priority-empty"><span aria-hidden="true">＋</span><h2>What matters most to you?</h2><p>Choose up to 10 concerns to start your personal priority list.</p><a class="find-button" href="results.html">Explore concerns ↗</a></div>';}
 }
 function announcePriority(message){document.querySelector('#priority-announcement').textContent=message;}
 document.addEventListener('click',event=>{const button=event.target.closest('[data-priority], [data-remove-priority]');if(!button)return;const id=button.dataset.priority||button.dataset.removePriority;const next=button.matches('[data-remove-priority]')?button.closest('article').nextElementSibling?.querySelector('button'):null;const result=priorityStore.toggle(id);syncPriorityUI();announcePriority(result==='limit'?'You have 10 priorities. Remove one in My Priorities before adding another.':result==='added'?`Added to your priorities. ${priorityStore.ids.length} of 10 selected.`:`Removed from your priorities. ${priorityStore.ids.length} of 10 selected.`);if(button.dataset.removePriority){if(next&&next.isConnected)next.focus();else document.querySelector('#priorities-heading')?.focus();}});

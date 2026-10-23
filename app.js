@@ -40,7 +40,7 @@ function render(){
   const filtered = concerns.filter(c => (scope === 'national' || scope === 'state' && c.state === stateFilter.value || scope === 'city' && c.state === stateFilter.value && c.city === cityFilter.value || scope === 'zip' && validZip && c.zip === zip) && (topicFilter.value === 'all' || c.topic === topicFilter.value) && `${c.title} ${c.description} ${c.topic}`.toLowerCase().includes(query));
   list.innerHTML = filtered.length ? filtered.map(c => {
     const index = concerns.indexOf(c);
-    return `<article class="concern"><span class="rank">${String(index+1).padStart(2,'0')}</span><div class="concern-main"><button class="concern-title" data-index="${index}">${c.title}</button><p>${c.description}</p><div class="meta"><span class="tag">${c.topic}</span><span>${c.city}, ${c.state}</span><span>${c.comments} perspectives</span><span>·</span><span>${c.sources} sources</span></div></div><div class="priority-count">${format(c.priorities)}<small>residents prioritize this</small><button class="priority-button" data-priority="concern-${index+1}" aria-pressed="false">＋ Make this a priority</button></div><span class="row-arrow" aria-hidden="true">↗</span></article>`;
+    return `<article class="concern" id="concern-${index+1}"><span class="rank">${String(index+1).padStart(2,'0')}</span><div class="concern-main"><button class="concern-title" data-index="${index}">${c.title}</button><p>${c.description}</p><div class="meta"><span class="tag">${c.topic}</span><span>${c.city}, ${c.state}</span><span>${c.comments} perspectives</span><span>·</span><span>${c.sources} sources</span></div></div><div class="priority-count">${format(c.priorities)}<small>residents prioritize this</small><button class="priority-button" data-priority="concern-${index+1}" aria-pressed="false">＋ Make this a priority</button></div><span class="row-arrow" aria-hidden="true">↗</span></article>`;
   }).join('') : '<p class="empty">No concerns match these filters. Try another topic or location.</p>';
   document.querySelector('#count').textContent = filtered.length;
   document.querySelector('#results').textContent = `Showing ${filtered.length} of ${concerns.length} sample concerns · ${area} · Illustrative counts`;
@@ -59,17 +59,14 @@ document.querySelector('#filters').addEventListener('submit',event => {
 });
 search.addEventListener('input',render);
 document.querySelector('#filters').addEventListener('reset',()=>setTimeout(updateLocation,0));
-const dialog = document.querySelector('#detail');
-list.addEventListener('click', event => {
-  const button = event.target.closest('[data-index]');
-  if(!button) return;
-  if(Number(button.dataset.index) === 0){window.location.href = 'concern.html';return;}
-  const c = concerns[Number(button.dataset.index)];
-  document.querySelector('#detail-content').innerHTML = `<div class="eyebrow">COMMUNITY PRIORITY ${Number(button.dataset.index)+1}</div><h2>${c.title}</h2><span class="tag">${c.topic} · ${c.city}, ${c.state} · ${c.zip}</span><p>${c.description}</p><p><strong>${format(c.priorities)} residents</strong> prioritize this concern, with ${c.comments} perspectives and ${c.sources} sources represented in this illustrative example.</p><p class="detail-note">This is a prototype with sample data. A future concern page will bring together resident experiences, linked evidence, and documented public actions. Accounts, contributions, and priority endorsements are not connected yet.</p>`;
-  dialog.showModal();
+list.addEventListener('click',event=>{
+ const button=event.target.closest('[data-index]');if(!button)return;
+ const index=Number(button.dataset.index);if(!concerns[index])return;
+ const filters=new URLSearchParams({level:locationFilter.value,state:stateFilter.value,city:cityFilter.value,zip:zipFilter.value,topic:topicFilter.value,q:search.value});
+ const page=window.location.pathname.split('/').pop()||'index.html';
+ const back=`${page}?${filters}#concern-${index+1}`;
+ window.location.href=`concern.html?${new URLSearchParams({id:`concern-${index+1}`,back})}`;
 });
-document.querySelector('.close').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('click', event=> { if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();} });
 const params = new URLSearchParams(window.location.search);
 if(['national','state','city','zip'].includes(params.get('level'))) locationFilter.value=params.get('level');
 if(['Oregon','Washington','California'].includes(params.get('state'))) stateFilter.value=params.get('state');
@@ -79,3 +76,4 @@ if([...topicFilter.options].some(o=>o.value===params.get('topic'))) topicFilter.
 zipFilter.value=params.get('zip')||'';
 search.value=params.get('q')||'';
 render();
+if(/^#concern-[1-8]$/.test(window.location.hash)) requestAnimationFrame(()=>document.getElementById(window.location.hash.slice(1))?.scrollIntoView({block:'center'}));

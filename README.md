@@ -15,3 +15,5 @@ Run from this directory with `python3 -m http.server 3000 --bind 0.0.0.0`.
 `map.html`: interactive state map with topic comparisons and synthetic example percentages. Geographic data: PublicaMundi/MappingAPI US states GeoJSON. No survey results are represented.
 
 `priorities.html`: personal priority list (maximum 10). Selections are stored in localStorage on this browser/origin, synchronized across tabs, and never change illustrative community counts. Storage failures fall back to temporary page-only state with an explicit notice. No accounts or server sync.
+
+All eight concerns now open `concern.html?id=concern-N` with topic-specific prototype content. The `back` parameter preserves list version, filters, and row anchor; only same-origin known list pages are accepted. Saved priorities link to each matching concern.
