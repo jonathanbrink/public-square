@@ -49,7 +49,13 @@ locationFilter.addEventListener('change',updateLocation);
 stateFilter.addEventListener('change',updateLocation);
 [cityFilter,topicFilter].forEach(el => el.addEventListener('change',render));
 zipFilter.addEventListener('input',render);
-document.querySelector('#filters').addEventListener('submit',event => event.preventDefault());
+document.querySelector('#filters').addEventListener('submit',event => {
+  event.preventDefault();
+  if(locationFilter.value === 'zip' && !/^\d{5}$/.test(zipFilter.value.trim())){render();zipFilter.focus();return;}
+  if(document.body.classList.contains('results-page')){render();return;}
+  const params = new URLSearchParams({level:locationFilter.value,state:stateFilter.value,city:cityFilter.value,zip:zipFilter.value.trim(),topic:topicFilter.value,q:search.value});
+  window.location.href = `results.html?${params}`;
+});
 search.addEventListener('input',render);
 document.querySelector('#filters').addEventListener('reset',()=>setTimeout(updateLocation,0));
 const dialog = document.querySelector('#detail');
@@ -62,4 +68,12 @@ list.addEventListener('click', event => {
 });
 document.querySelector('.close').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click', event=> { if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();} });
+const params = new URLSearchParams(window.location.search);
+if(['national','state','city','zip'].includes(params.get('level'))) locationFilter.value=params.get('level');
+if(['Oregon','Washington','California'].includes(params.get('state'))) stateFilter.value=params.get('state');
 updateLocation();
+if([...cityFilter.options].some(o=>o.value===params.get('city'))) cityFilter.value=params.get('city');
+if([...topicFilter.options].some(o=>o.value===params.get('topic'))) topicFilter.value=params.get('topic');
+zipFilter.value=params.get('zip')||'';
+search.value=params.get('q')||'';
+render();
