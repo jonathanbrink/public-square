@@ -9,3 +9,5 @@ A static community priorities prototype with clearly labeled sample data.
 Use the compact header version switcher to compare V1 and V2. Both designs are self-contained HTML pages; no build or installation is required. The V2 image is AI-generated. No accounts, contributions, or live community data are connected.
 
 Run from this directory with `python3 -m http.server 3000 --bind 0.0.0.0`.
+
+`concern.html`: housing concern design with accessible Overview, Resident perspectives, Evidence & resources, and Public action tabs. Resident stories and action milestones are explicitly illustrative.

@@ -62,6 +62,7 @@ const dialog = document.querySelector('#detail');
 list.addEventListener('click', event => {
   const button = event.target.closest('[data-index]');
   if(!button) return;
+  if(Number(button.dataset.index) === 0){window.location.href = 'concern.html';return;}
   const c = concerns[Number(button.dataset.index)];
   document.querySelector('#detail-content').innerHTML = `<div class="eyebrow">COMMUNITY PRIORITY ${Number(button.dataset.index)+1}</div><h2>${c.title}</h2><span class="tag">${c.topic} · ${c.city}, ${c.state} · ${c.zip}</span><p>${c.description}</p><p><strong>${format(c.priorities)} residents</strong> prioritize this concern, with ${c.comments} perspectives and ${c.sources} sources represented in this illustrative example.</p><p class="detail-note">This is a prototype with sample data. A future concern page will bring together resident experiences, linked evidence, and documented public actions. Accounts, contributions, and priority endorsements are not connected yet.</p>`;
   dialog.showModal();
