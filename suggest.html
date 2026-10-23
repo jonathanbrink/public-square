@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suggest a concern · Public Square</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="suggest.css">
+  <script src="concerns.js" defer></script>
+  <script src="drafts.js" defer></script>
+  <script src="suggest.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="index.html"><img src="logo.svg" alt="" width="30" height="30">Public Square</a>
+  <nav aria-label="Main navigation"><a href="results.html">Explore concerns ↗</a><a href="priorities.html">My Priorities</a></nav>
+  <span class="badge">COMMUNITY PREVIEW</span>
+</header>
+<main id="main">
+  <a class="back-link" href="index.html">← Back to the square</a>
+  <div class="intro"><p class="eyebrow">YOUR EXPERIENCE MATTERS</p><h1>What should we<br>talk about <em>together?</em></h1><p>Give a shared concern a clear starting point. Describe what’s happening,<br class="desktop-break"> who it affects, and why it matters to your community.</p></div>
+  <aside class="privacy"><span aria-hidden="true">✳</span><div><strong>Private draft — saved only in this browser.</strong><p>Nothing here is published or added to shared rankings. People using this browser profile may see your drafts. Clearing site data can remove them.</p></div></aside>
+  <noscript><p class="notice">JavaScript is needed to preview and save browser drafts. No form data will be submitted.</p></noscript>
+  <div class="workspace">
+    <section class="editor panel" aria-labelledby="editor-heading">
+      <div class="section-top"><div><p class="eyebrow">01 / DESCRIBE</p><h2 id="editor-heading" tabindex="-1">Start with the concern</h2></div><span id="save-state">New draft</span></div>
+      <p class="hint">All fields are needed for a preview. You can save an unfinished draft at any time.</p>
+      <div id="conflict" class="notice" hidden><p>This draft changed in another tab. Reload that version or save your work as a separate copy.</p><div class="actions"><button type="button" id="reload-draft">Reload saved version</button><button type="button" id="copy-draft">Save a separate copy</button></div></div>
+      <form id="concern-form" novalidate>
+        <label for="title">Concern title</label><p class="hint" id="title-help">Describe one shared problem, rather than a proposed solution. 10–120 characters.</p>
+        <input id="title" name="title" maxlength="120" required aria-describedby="title-help title-error" placeholder="For example, buses stop before evening shifts end">
+        <p class="error" id="title-error"></p>
+        <label for="description">What’s happening?</label><p class="hint" id="description-help">Explain who is affected and why it matters. Avoid names, private details, and personal accusations. 30–2,000 characters.</p>
+        <textarea id="description" name="description" rows="6" maxlength="2000" required aria-describedby="description-help description-error" placeholder="Tell us about the condition you’d like your community to discuss…"></textarea>
+        <p class="error" id="description-error"></p>
+        <label for="topic">Topic</label><select id="topic" name="topic" required aria-describedby="topic-error"><option value="">Choose a topic</option><option>Housing</option><option>Transportation</option><option>Public spaces</option><option>Community care</option><option>Environment</option><option>Other / unsure</option></select><p class="error" id="topic-error"></p>
+        <fieldset><legend>Where does this concern apply?</legend><p class="hint">Choose the area affected, not your home address. No device location is collected.</p>
+          <label for="scope">Location level</label><select id="scope" name="scope" required aria-describedby="scope-error"><option value="">Choose an area</option><option value="national">United States</option><option value="state">State</option><option value="city">City</option><option value="zip">ZIP code</option></select><p class="error" id="scope-error"></p>
+          <div id="state-field" hidden><label for="state">State or district</label><select id="state" name="state" aria-describedby="state-error"><option value="">Choose a state</option></select><p class="error" id="state-error"></p></div>
+          <div id="city-field" hidden><label for="city">City</label><input id="city" name="city" maxlength="100" aria-describedby="city-error" autocomplete="off"><p class="error" id="city-error"></p></div>
+          <div id="zip-field" hidden><label for="zip">ZIP code</label><input id="zip" name="zip" inputmode="numeric" maxlength="5" aria-describedby="zip-help zip-error" autocomplete="off"><p class="hint" id="zip-help">Five digits. This checks the format, not whether a ZIP exists.</p><p class="error" id="zip-error"></p></div>
+        </fieldset>
+        <div class="actions form-actions"><button type="button" id="save" class="primary">Save private draft</button><button type="submit">Preview concern ↗</button></div>
+        <p class="hint">This is a prototype. Public submission isn’t available yet.</p>
+      </form>
+    </section>
+    <aside class="sidebar">
+      <section class="panel" aria-labelledby="similar-heading"><p class="eyebrow">02 / FIND COMMON GROUND</p><h2 id="similar-heading">Already on the square?</h2><p class="hint">These suggestions use words, topic, and location from the eight public sample concerns. They won’t include private drafts.</p><div id="similar-list"></div><p class="hint">Different experience? Keep drafting. Your concern can stand on its own.</p></section>
+      <section class="panel draft-panel" aria-labelledby="drafts-heading"><div class="section-top"><h2 id="drafts-heading">My private drafts</h2><button type="button" id="new-draft">＋ New</button></div><p class="hint">Only in this browser. Never part of community counts.</p><div id="draft-list"></div></section>
+    </aside>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+  <footer><a href="v1.html">Original design (V1)</a><a href="index.html">Community design (V2)</a><span>Community priorities. Public accountability.</span></footer>
+</main>
+<dialog id="preview" aria-labelledby="preview-heading"><button type="button" class="close" id="close-preview" aria-label="Close preview">×</button><p class="eyebrow">03 / YOUR CONCERN, IN FOCUS</p><p class="draft-label">PRIVATE DRAFT · NOT PUBLISHED</p><h2 id="preview-heading"></h2><p id="preview-meta" class="hint"></p><p id="preview-description" class="preserve-lines"></p><p class="privacy-note">This preview is private. It does not appear in shared lists or affect community rankings.</p><div class="actions"><button type="button" id="edit-preview">Keep editing</button><button type="button" id="save-preview" class="primary">Save private draft</button></div></dialog>
+</body>
+</html>

@@ -21,3 +21,11 @@ All eight concerns now open `concern.html?id=concern-N` with topic-specific prot
 Map drill-down: select a state, then a sample city and ZIP; direct ZIP lookup supports the eight prototype ZIPs. Breadcrumbs and browser history preserve topic and location. Local views show a state locator silhouette, not fabricated city/ZIP boundaries. Unknown ZIPs and missing local coverage are explicitly reported.
 
 State drill-down maps now include clickable city-center circles and approximate ZIP-location diamonds, with leader-line labels. Prototype locator coordinates are approximate; no city or ZIP boundaries are asserted.
+
+`suggest.html`: Suggest a concern with title, description, topic, and national/state/city/ZIP scope; similar public sample concerns; safe text preview; and private browser drafts. Incomplete drafts can be saved, reopened, edited, and deleted. Drafts use the separate `public-square-drafts-v1` localStorage key and never change sample concerns, shared counts, or My Priorities. This is not public submission. Clearing site data removes drafts, and people sharing a browser profile may see them. Storage failures retain work on the page with an explicit warning; unreadable saved records are preserved rather than overwritten. Cross-tab changes require reloading or saving a separate copy.
+
+Authoring uses `concerns.js` (sample catalog), `drafts.js` (isolated private store), `suggest.js`, and `suggest.css`. Existing pages remain self-contained. The authoring catalog currently mirrors the existing priority catalog; keep IDs and sample content aligned when editing the examples.
+
+Product scope and pilot assumptions: `docs/PRODUCT_PLAN.md`.
+
+Checks: `node --test tests/drafts.test.cjs`. For browser checks, start the local server above, then run `node tests/suggest.browser.cjs` with Playwright installed and Chromium available at `/usr/bin/chromium` (or set `CHROMIUM_PATH`). Browser checks use isolated browser profiles and do not touch personal drafts.
