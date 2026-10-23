@@ -23,7 +23,7 @@ if(currentConcern){
 }
 let back='results.html';
 const candidate=concernQuery.get('back');
-if(candidate){try{const parsed=new URL(candidate,location.href);if(parsed.origin===location.origin&&['index.html','v1.html','results.html','priorities.html'].some(name=>parsed.pathname===new URL(name,location.href).pathname))back=parsed.pathname.split('/').pop()+parsed.search+parsed.hash;}catch{}}
+if(candidate){try{const parsed=new URL(candidate,location.href);if(parsed.origin===location.origin&&['index.html','v1.html','results.html','priorities.html','map.html'].some(name=>parsed.pathname===new URL(name,location.href).pathname))back=parsed.pathname.split('/').pop()+parsed.search+parsed.hash;}catch{}}
 if(currentConcern||concernId==='concern-1'){
  document.querySelector('.breadcrumbs a:nth-of-type(2)').href=back;
  document.querySelector('.breadcrumbs a:nth-of-type(2)').textContent='Back to concerns';
