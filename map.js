@@ -14,6 +14,34 @@ function navigate(next,write=true){focus=next;document.querySelector('#zip-feedb
 function selectState(name){navigate(name?{level:'state',state:name,city:'',zip:''}:{level:'national',state:'',city:'',zip:''});}
 function selectCity(name){navigate({level:name?'city':'state',state:focus.state,city:name,zip:''});}
 function selectZip(value){const record=atlasCatalog.find(c=>c.zip===value);if(!record)return false;navigate({level:'zip',state:record.state,city:record.city,zip:record.zip});return true;}
+
+const locatorPoints={"Portland": [73.707, 80.475], "Eugene": [61.194, 104.653], "Seattle": [88.205, 45.481], "Sacramento": [54.602, 206.624], "San Francisco": [38.052, 217.321], "97211": [74.384, 79.638], "97214": [74.039, 80.733], "97401": [61.522, 104.471], "98101": [88.211, 45.395], "98103": [88.407, 44.278], "95814": [54.586, 206.65], "95816": [54.953, 206.903], "94103": [38.157, 217.388]};
+function renderLocationMarkers(){
+ svg.querySelector('#location-markers')?.remove();
+ if(!focus.state)return;
+ const ns='http://www.w3.org/2000/svg';const layer=document.createElementNS(ns,'g');layer.id='location-markers';
+ const statePath=paths.find(p=>p.dataset.state===focus.state);const box=statePath.getBBox();const unit=Math.max(box.width,box.height)/520;
+ const make=(tag,attrs,parent=layer,text)=>{const el=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([key,value])=>el.setAttribute(key,String(value)));if(text)el.textContent=text;parent.appendChild(el);return el;};
+ const cities=[...new Set(atlasCatalog.filter(c=>c.state===focus.state).map(c=>c.city))];
+ const selectedZips=focus.city?[...new Set(atlasCatalog.filter(c=>c.state===focus.state&&c.city===focus.city).map(c=>c.zip))]:[];
+ function marker(name,isZip,index){
+  const point=locatorPoints[name];if(!point)return;
+  const [x,y]=point;const selected=isZip?focus.zip===name:focus.city===name;
+  const group=make('g',{'class':`locator-marker ${isZip?'zip-marker':'city-marker'}`,'role':'button','tabindex':'0','aria-label':isZip?`Explore ZIP ${name}, approximate location`:`Explore ${name}, city location`});
+  const labelX=x+14*unit,labelY=isZip?locatorPoints[focus.city][1]+(17+index*24)*unit:y-15*unit;
+  make('line',{x1:x,y1:y,x2:labelX,y2:labelY,stroke:isZip?'#9c7832':'#36543e','stroke-width':unit,'stroke-dasharray':isZip?`${2*unit} ${2*unit}`:'none'},group);
+  if(isZip)make('path',{d:`M${x},${y-4*unit} l${4*unit},${4*unit} l${-4*unit},${4*unit} l${-4*unit},${-4*unit} Z`,fill:selected?'#bd8f34':'#e2bf70',stroke:'#fff','stroke-width':unit},group);
+  else{make('circle',{cx:x,cy:y,r:7*unit,fill:'#ffffff90'},group);make('circle',{cx:x,cy:y,r:4*unit,fill:'#284f3b',stroke:'#fff','stroke-width':unit},group);}
+  const label=isZip?`ZIP ${name}${selected?' · Selected':''}`:name;const width=(label.length*6.2+16)*unit;
+  make('rect',{x:labelX-4*unit,y:labelY-10*unit,width,height:19*unit,rx:4*unit,fill:selected?'#263f33':'#fffefa',stroke:isZip?'#bd9c57':'#b6c9a5','stroke-width':unit},group);
+  make('text',{x:labelX+3*unit,y:labelY+3*unit,fill:selected?'#fff':'#294332','font-size':11*unit,'font-family':'sans-serif','font-weight':selected?'700':'500'},group,label);
+  const choose=()=>isZip?selectZip(name):selectCity(name);group.addEventListener('click',choose);group.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();choose();}});
+ }
+ cities.filter(c=>!focus.city||c===focus.city).forEach((name,i)=>marker(name,false,i));
+ selectedZips.forEach((name,i)=>marker(name,true,i));
+ svg.appendChild(layer);
+}
+
 function renderMap(){
  const t=topic.value, label=scopeLabel(),hasTopic=t!=='all';
  state.value=focus.state;
@@ -23,12 +51,14 @@ function renderMap(){
  document.querySelector('#map-city-field').hidden=!focus.state||cities.length===0;
  document.querySelector('#map-zip-field').hidden=!focus.city;
  document.querySelector('#map-title').textContent=focus.level==='national'?(hasTopic?`Where ${t.toLowerCase()} is a priority`:'Community priorities across the United States'):`${label} · ${hasTopic?t:'All concerns'}`;
- document.querySelector('#map-context-label').textContent=focus.level==='national'?'State comparison':'State locator · not city or ZIP boundaries';
+ document.querySelector('#map-context-label').textContent=focus.level==='national'?'State comparison':'City ● · ZIP ◆ · Approximate locations';
+ document.querySelector('#marker-key').hidden=focus.level==='national';
  document.querySelector('#map-legend').hidden=focus.level!=='national'||!hasTopic;
  svg.classList.toggle('drilled',focus.level!=='national');
  paths.forEach(p=>{const name=p.dataset.state,v=share(name,t);p.hidden=false;p.style.display=focus.state&&name!==focus.state?'none':'';p.style.fill=hasTopic?colors[Math.min(4,Math.floor((v-22)/11))]:'#cddfb0';p.classList.toggle('selected',name===focus.state);p.setAttribute('aria-label',`${name}${hasTopic?`: ${v}% illustrative share`:''}. Explore state.`);p.setAttribute('aria-pressed',String(name===focus.state));});
  svg.querySelectorAll('text').forEach(el=>el.style.display=focus.level==='national'?'':'none');
  if(focus.state){const selected=paths.find(p=>p.dataset.state===focus.state);const b=selected.getBBox(),padding=Math.max(b.width,b.height)*.12;svg.setAttribute('viewBox',`${b.x-padding} ${b.y-padding} ${b.width+2*padding} ${b.height+2*padding}`);}else svg.setAttribute('viewBox','0 0 870 535');
+ renderLocationMarkers();
  let crumbs='<a href="map.html" data-level="national">United States</a>';
  if(focus.state)crumbs+=`<span>›</span><a href="?${new URLSearchParams({level:'state',state:focus.state,topic:t})}" data-level="state">${focus.state}</a>`;
  if(focus.city)crumbs+=`<span>›</span><a href="?${new URLSearchParams({level:'city',state:focus.state,city:focus.city,topic:t})}" data-level="city">${focus.city}</a>`;
@@ -36,9 +66,9 @@ function renderMap(){
  document.querySelector('#map-breadcrumb').innerHTML=crumbs;
  const context=document.querySelector('#location-context');context.hidden=focus.level==='national';
  let html='';
- if(focus.level==='state')html=`<h3>Explore ${focus.state}</h3><p>${cities.length?'Choose a sample city to see local concerns.':'No city-level sample data is available here yet. State comparisons above remain illustrative.'}</p><div class="location-options">${cities.map(c=>`<button data-city="${c}">${c} ↗</button>`).join('')}</div>`;
- if(focus.level==='city')html=`<h3>${focus.city}, ${focus.state}</h3><p>Choose a ZIP area, or explore the city concerns below. ZIP areas and city boundaries do not always align; these are sample associations, not a complete geographic directory.</p><div class="location-options">${[...new Set(scopeConcerns().map(c=>c.zip))].map(z=>`<button data-zip="${z}">ZIP ${z} ↗</button>`).join('')}</div>`;
- if(focus.level==='zip')html=`<h3>ZIP ${focus.zip}</h3><p>Sample location: ${focus.city}, ${focus.state}. The map shows the containing state for context, not the ZIP boundary. Local concerns are listed below.</p>`;
+ if(focus.level==='state')html=`<h3>Explore ${focus.state}</h3><p>${cities.length?'Choose a labeled city marker or a city below to see local concerns.':'No city-level sample data is available here yet. State comparisons above remain illustrative.'}</p><div class="location-options">${cities.map(c=>`<button data-city="${c}">${c} ↗</button>`).join('')}</div>`;
+ if(focus.level==='city')html=`<h3>${focus.city}, ${focus.state}</h3><p>Choose a diamond ZIP marker, a ZIP below, or explore the city concerns. ZIP areas and city boundaries do not always align; these are sample associations, not a complete geographic directory.</p><div class="location-options">${[...new Set(scopeConcerns().map(c=>c.zip))].map(z=>`<button data-zip="${z}">ZIP ${z} ↗</button>`).join('')}</div>`;
+ if(focus.level==='zip')html=`<h3>ZIP ${focus.zip}</h3><p>Sample location: ${focus.city}, ${focus.state}. The circle marks the city; diamonds mark approximate ZIP locations. Labels connect to each marker with a line. ZIP boundaries are not shown.</p>`;
  context.innerHTML=html;
  document.querySelector('#snapshot-label').textContent=`${focus.level.toUpperCase()} SNAPSHOT`;
  document.querySelector('#state-name').textContent=label;

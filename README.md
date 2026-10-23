@@ -19,3 +19,5 @@ Run from this directory with `python3 -m http.server 3000 --bind 0.0.0.0`.
 All eight concerns now open `concern.html?id=concern-N` with topic-specific prototype content. The `back` parameter preserves list version, filters, and row anchor; only same-origin known list pages are accepted. Saved priorities link to each matching concern.
 
 Map drill-down: select a state, then a sample city and ZIP; direct ZIP lookup supports the eight prototype ZIPs. Breadcrumbs and browser history preserve topic and location. Local views show a state locator silhouette, not fabricated city/ZIP boundaries. Unknown ZIPs and missing local coverage are explicitly reported.
+
+State drill-down maps now include clickable city-center circles and approximate ZIP-location diamonds, with leader-line labels. Prototype locator coordinates are approximate; no city or ZIP boundaries are asserted.
